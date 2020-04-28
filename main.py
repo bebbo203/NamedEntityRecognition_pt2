@@ -18,6 +18,9 @@ from lib.gloveparser import GloveParser
 params = Params()
 
 
+
+
+
 #Vocabularies and dataset creation
 
 if(not params.test):
@@ -35,6 +38,7 @@ with open("model/vocabulary.json", 'w+') as outfile:
         json.dump(train_dataset.vocabulary.__dict__, outfile)
 with open("model/label_vocabulary.json", 'w+') as outfile:
         json.dump(train_dataset.label_vocabulary.__dict__, outfile)
+
 
 
 #Pretrained embeddings weights loading
@@ -60,7 +64,6 @@ if(params.embeddings_path != None):
                 data = json.load(json_file)
                 embeddings_weights = torch.Tensor(data)
         print("Embedding weights loaded!")
-
 
 
 

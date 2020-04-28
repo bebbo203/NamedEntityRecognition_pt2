@@ -8,6 +8,8 @@ from .vocabulary import Vocabulary
 
 class NERDataset(torch.utils.data.Dataset):
     
+    alphabet = "abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'/\|_@#$%ˆ&*˜‘+-=()[]{}"
+
     def __init__(self, file_path, vocabulary = None, label_vocabulary = None):
         
         self.params = Params()
@@ -23,7 +25,7 @@ class NERDataset(torch.utils.data.Dataset):
         else:
             self.vocabulary = vocabulary
             self.label_vocabulary = label_vocabulary
-        self.alphabet = "abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'/\|_@#$%ˆ&*˜‘+-=()[]{}"
+        self.alphabet = NERDataset.alphabet
         self.encoded_data = self.generate_dataset()
     
 
@@ -65,9 +67,9 @@ class NERDataset(torch.utils.data.Dataset):
         progress_bar = tqdm(total=len(self.windows_list), desc='generating_dataset')
         for window in self.windows_list:
             
-            encoded_words = self.encode_sentence(window, self.vocabulary)
+            encoded_words = self.encode_sentence_conllu(window, self.vocabulary)
             encoded_labels = [self.label_vocabulary[w["lemma"]] if w is not None else self.label_vocabulary["<pad>"] for w in window]
-            encoded_chars = self.encode_chars(window, self.alphabet, self.params.max_word_length)
+            encoded_chars = self.encode_chars_conllu(window, self.alphabet, self.params.max_word_length)
 
             for x in zip(encoded_chars, encoded_words):
                 x[0][-1] = x[1]
@@ -85,7 +87,7 @@ class NERDataset(torch.utils.data.Dataset):
     
     
     @staticmethod
-    def encode_sentence(sentence, vocabulary):
+    def encode_sentence_conllu(sentence, vocabulary):
         ret = []
         for w in sentence:
             if(w is not None):
@@ -95,9 +97,43 @@ class NERDataset(torch.utils.data.Dataset):
                 ret.append(vocabulary["<pad>"])
         return ret
     
+    @staticmethod
+    def encode_sentence(sentence, vocabulary):
+        ret = []
+        for w in sentence:
+            if(w is not None):
+                word = w
+                ret.append(vocabulary[word])
+            else:
+                ret.append(vocabulary["<pad>"])
+        return ret
     
     @staticmethod
     def encode_chars(sentence, alphabet, word_length):
+        window_idx = []
+        for w in sentence:
+            word_idx = []
+            if(w is not None):
+                word = w
+                for c in word:
+                    #0 is Padding or not found
+                    if(len(word_idx) < word_length):
+                        word_idx.append(alphabet.find(c.lower())+1)
+                    else:
+                        break
+            else:
+                word_idx.append(0)
+
+            while(len(word_idx) < word_length+1):
+                word_idx.append(0)
+            window_idx.append(torch.LongTensor(word_idx))
+        window_idx = torch.stack(window_idx)
+        
+        return window_idx
+    
+    
+    @staticmethod
+    def encode_chars_conllu(sentence, alphabet, word_length):
         window_idx = []
         for w in sentence:
             word_idx = []

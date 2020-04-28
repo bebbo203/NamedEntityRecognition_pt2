@@ -25,7 +25,7 @@ class StudentModel():
             data = json.load(json_file)
             self.label_vocabulary = Vocabulary(unknown=data["unknown"], padding=data["padding"], loaded_vocabulary=data["dict"])
 
-        self.nermodel = NERModel(len(self.vocabulary), len(self.label_vocabulary) , self.params).to(torch.device(self.device))
+        self.nermodel = NERModel(len(self.vocabulary), self.params.alphabet_size ,len(self.label_vocabulary) , self.params, device = self.device).to(torch.device(self.device))
         self.nermodel.load_state_dict(torch.load("model/weights.pt", map_location=torch.device(self.device)))
         self.nermodel.eval()
         
@@ -40,6 +40,7 @@ class StudentModel():
         return windows_list
 
     
+    
 
     def predict(self, tokens: List[List[str]]) -> List[List[str]]:
         ret = []
@@ -48,10 +49,21 @@ class StudentModel():
             sentence_pred = []
             for window in windows_list:
                 n_none = window.count(None)
-                encoded_window = [self.vocabulary[w] for w in window]
-                encoded_window += [None] * (self.params.windows_size - len(encoded_window))
+                encoded_window_words = []
+                encoded_window_chars = []
                 
-                encoded_window = torch.LongTensor(encoded_window).to(torch.device(self.device))
+                for w in window:
+                    if(w is None):
+                        encoded_window_words.append(self.vocabulary["<pad>"])
+                    else:
+                        encoded_window_words.append(self.vocabulary[w])   
+                
+                encoded_window_chars = NERDataset.encode_chars(window, NERDataset.alphabet , self.params.max_word_length)
+                
+                for x in zip(encoded_window_chars, encoded_window_words):
+                    x[0][-1] = x[1]
+                
+                encoded_window = torch.LongTensor(encoded_window_chars).to(torch.device(self.device))
 
                 pred = self.nermodel(encoded_window.unsqueeze(0))
                 pred = pred.squeeze(0)
@@ -73,7 +85,7 @@ a = StudentModel("cuda")
 
 
 
-f = open("data/test.tsv")
+f = open("data/dev.tsv")
 pad_idx = a.label_vocabulary["<pad>"]
 
 batch=[]
