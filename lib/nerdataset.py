@@ -23,6 +23,7 @@ class NERDataset(torch.utils.data.Dataset):
         else:
             self.vocabulary = vocabulary
             self.label_vocabulary = label_vocabulary
+        self.alphabet = "abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'/\|_@#$%ˆ&*˜‘+-=()[]{}"
         self.encoded_data = self.generate_dataset()
     
 
@@ -66,9 +67,14 @@ class NERDataset(torch.utils.data.Dataset):
             
             encoded_words = self.encode_sentence(window, self.vocabulary)
             encoded_labels = [self.label_vocabulary[w["lemma"]] if w is not None else self.label_vocabulary["<pad>"] for w in window]
+            encoded_chars = self.encode_chars(window, self.alphabet, self.params.max_word_length)
+
+            for x in zip(encoded_chars, encoded_words):
+                x[0][-1] = x[1]
+
         
             ret.append({
-                        "inputs": torch.LongTensor(encoded_words).to(torch.device(self.params.device)),
+                        "inputs": torch.LongTensor(encoded_chars).to(torch.device(self.params.device)),
                         "outputs": torch.LongTensor(encoded_labels).to(torch.device(self.params.device))
                       })
             
@@ -88,6 +94,33 @@ class NERDataset(torch.utils.data.Dataset):
             else:
                 ret.append(vocabulary["<pad>"])
         return ret
+    
+    
+    @staticmethod
+    def encode_chars(sentence, alphabet, word_length):
+        window_idx = []
+        for w in sentence:
+            word_idx = []
+            if(w is not None):
+                word = w["form"]
+                for c in word:
+                    #0 is Padding or not found
+                    if(len(word_idx) < word_length):
+                        word_idx.append(alphabet.find(c.lower())+1)
+                    else:
+                        break
+            else:
+                word_idx.append(0)
+            
+            while(len(word_idx) < word_length+1):
+                word_idx.append(0)
+
+            window_idx.append(torch.LongTensor(word_idx))
+        
+        window_idx = torch.stack(window_idx)
+        
+        #Is a Tensor that contains a list of lists of words padded
+        return window_idx
 
     @staticmethod
     def decode_sentence(sentence, vocabulary):

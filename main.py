@@ -29,6 +29,8 @@ else:
     valid_dataset = NERDataset("data/little_dev.tsv", train_dataset.vocabulary, train_dataset.label_vocabulary)
     test_dataset = NERDataset("data/little_test.tsv", train_dataset.vocabulary, train_dataset.label_vocabulary)
 
+
+
 with open("model/vocabulary.json", 'w+') as outfile:
         json.dump(train_dataset.vocabulary.__dict__, outfile)
 with open("model/label_vocabulary.json", 'w+') as outfile:
@@ -52,7 +54,7 @@ if(params.embeddings_path != None):
         with open(params.processed_embeddings_path, 'w') as outfile:
             json.dump(embeddings_weights.tolist(), outfile)
         print("Embedding weights saved!")
-        print("Out of %d total words, %d are found in the embedding" % (len(train_dataset.vocabulary), words_missing))
+        print("Out of %d total words, %d were found in the embedding" % (len(train_dataset.vocabulary), words_missing))
     else:
         with open(params.processed_embeddings_path) as json_file:
                 data = json.load(json_file)
@@ -68,7 +70,7 @@ train_loader = DataLoader(train_dataset, batch_size=256)
 valid_loader = DataLoader(valid_dataset, batch_size=256)
 test_loader = DataLoader(test_dataset, batch_size=256)
 
-nermodel = NERModel(len(train_dataset.vocabulary), len(train_dataset.label_vocabulary) , params).to(torch.device(params.device))
+nermodel = NERModel(len(train_dataset.vocabulary), params.alphabet_size, len(train_dataset.label_vocabulary) ,  params).to(torch.device(params.device))
 if(params.embeddings_path != None):
     nermodel.word_embedder.weight.data.copy_(torch.Tensor(embeddings_weights))
 
