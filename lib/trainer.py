@@ -56,7 +56,7 @@ class Trainer():
             print('\t\t recall = {:0.4f}'.format(recall))
             print('\t\t f1 = {:0.4f}'.format(f1))
 
-            fx = open("model/plot.csv", "w+")
+            fx = open("model/plot.csv", "a+")
             fx.write("%f, %f, %f, %f, %f, %f\n" % (epoch_loss, valid_loss, micro, macro, recall, f1))
             fx.close()
     
@@ -81,7 +81,7 @@ class Trainer():
                 
                 
                 valid_indices = labels != valid_dataset.dataset.label_vocabulary["<pad>"]
-              
+
 
                 valid_predictions = predictions[valid_indices]
                 

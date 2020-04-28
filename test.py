@@ -73,7 +73,7 @@ a = StudentModel("cuda")
 
 
 
-f = open("data/dev.tsv")
+f = open("data/test.tsv")
 pad_idx = a.label_vocabulary["<pad>"]
 
 batch=[]

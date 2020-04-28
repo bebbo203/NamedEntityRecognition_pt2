@@ -8,3 +8,5 @@ class Params():
     bidirectional = True
     num_layers = 2
     dropout = 0.5
+    embeddings_path = "model/glove.6B.50d.txt"
+    processed_embeddings_path = "model/processed_embeddings_path.json"
