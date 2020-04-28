@@ -70,8 +70,11 @@ class StudentModel():
             sentence_pred = []
             for window in windows_list:
                 n_none = window.count(None)
-                encoded_window = [self.vocabulary[w] for w in window]
-                encoded_window += [None] * (self.params.windows_size - len(encoded_window))
+                for w in window:
+                    if(w is None):
+                        encoded_window.append(self.vocabulary["<pad>"])
+                    else:
+                        encoded_window.append(self.vocabulary[w])   
                 
                 encoded_window = torch.LongTensor(encoded_window).to(torch.device(self.device))
 

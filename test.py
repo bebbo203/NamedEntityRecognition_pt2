@@ -32,7 +32,7 @@ class StudentModel():
     def windows_generator(self, sentence):
         windows_list = []
         
-        for i in range(0, len(sentence), self.params.windows_shift):
+        for i in range(0, len(sentence), self.params.windows_size):
             window = sentence[i:i+self.params.windows_size]
             if(len(window) < self.params.windows_size):
                 window += [None] * (self.params.windows_size - len(window))            
@@ -46,22 +46,30 @@ class StudentModel():
         for sentence in tokens:
             windows_list = self.windows_generator(sentence)
             sentence_pred = []
+            
             for window in windows_list:
                 n_none = window.count(None)
-                encoded_window = [self.vocabulary[w] for w in window]
-                encoded_window += [None] * (self.params.windows_size - len(encoded_window))
-                
+                encoded_window = []
+                for w in window:
+                    if(w is None):
+                        encoded_window.append(self.vocabulary["<pad>"])
+                    else:
+                        encoded_window.append(self.vocabulary[w])            
+
+               
+
                 encoded_window = torch.LongTensor(encoded_window).to(torch.device(self.device))
 
                 pred = self.nermodel(encoded_window.unsqueeze(0))
                 pred = pred.squeeze(0)
                 if(n_none > 0):
-                    
                     pred = pred[:-n_none]
                 
                 pred = torch.argmax(pred, dim=1)
                 decoded_pred = NERDataset.decode_sentence(pred.tolist(), self.label_vocabulary)
                 sentence_pred.extend(decoded_pred)
+                
+            
             ret.append(sentence_pred)
         return ret
 
@@ -73,7 +81,7 @@ a = StudentModel("cuda")
 
 
 
-f = open("data/test.tsv")
+f = open("data/dev.tsv")
 pad_idx = a.label_vocabulary["<pad>"]
 
 batch=[]
