@@ -24,7 +24,7 @@ class NERModel(nn.Module):
                                 batch_first=True)
 
 
-        self.lstm = nn.LSTM(params.word_embedding_size + params.char_word_embedding_size, params.hidden_dim, 
+        self.lstm = nn.LSTM(params.word_embedding_size + params.char_embedding_size * params.max_word_length, params.hidden_dim, 
                             bidirectional=params.bidirectional,
                             num_layers=params.num_layers, 
                             dropout = params.dropout if params.num_layers > 1 else 0,
@@ -40,10 +40,21 @@ class NERModel(nn.Module):
         chars = x[:, :, :-1].type(torch.LongTensor).to(self.device)
         
         
+        
 
+
+
+        
         #u = (batch_size, window_size, word_size - 1, single_char_embedding_dim)
         u = self.char_embedder(chars)
         
+        u = u.reshape(u.size()[0], u.size()[1], u.size()[2]*u.size()[3])
+
+       
+        
+
+
+        '''
         char_embedding = torch.Tensor().to(self.device)
         for i in range(u.size()[1]):
             #w = (batch_size, max_word_length, single_char_embedding_dim)
@@ -51,16 +62,15 @@ class NERModel(nn.Module):
             o, (h, c) = self.char_lstm(w)
             out = h[-1].unsqueeze(dim=1) 
             char_embedding = torch.cat((char_embedding, out), dim=1)
-       
+       '''
         
        
         embeddings = self.word_embedder(word)
         embeddings = self.dropout(embeddings)
 
-        final_emb = torch.cat((embeddings, char_embedding), dim=2)
+        final_emb = torch.cat((embeddings, u), dim=2)
 
-       
-
+        
         o, (h, c) = self.lstm(final_emb)
         
         o = self.dropout(o)
