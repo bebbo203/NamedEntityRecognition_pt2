@@ -15,4 +15,4 @@ class Params():
     embeddings_path = "model/glove.6B.200d.txt"
     processed_embeddings_path = "model/processed_embeddings_path.json"
     alphabet_size = 67
-    char_embedding_size = 4
+    char_embedding_size = 10
