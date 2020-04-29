@@ -45,18 +45,10 @@ class NERModel(nn.Module):
         u = self.char_embedder(chars)
         
 
+        o, (h, c) = self.char_lstm(u.view(u.size()[0]*u.size()[1], u.size()[2], u.size()[3]))
 
-        char_embedding = torch.Tensor().to(self.device)
-        for i in range(u.size()[0]):
-            #w = (batch_size, max_word_length, single_char_embedding_dim)
-            w = u[i, :, : , :]
-
-            o, (h, c) = self.char_lstm(w)
-
-            out = h[-1].unsqueeze(dim=0)    
-            char_embedding = torch.cat((char_embedding, out), dim=0)
-      
-        
+        char_embedding = h[-1].view(u.size()[0], u.size()[1], self.params.char_word_embedding_size)
+          
        
         embeddings = self.word_embedder(word)
         embeddings = self.dropout(embeddings)
