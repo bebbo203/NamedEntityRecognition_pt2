@@ -1,8 +1,9 @@
 class Vocabulary():
-    def __init__(self, counter=None, unknown = None, padding = None, loaded_vocabulary = None):
+    def __init__(self, counter=None, unknown = None, padding = None, loaded_vocabulary = None, min_freq = 0):
         self.counter = counter
         self.unknown = unknown
         self.padding = padding
+        self.min_freq = min_freq
         if(loaded_vocabulary is None):
             self.dict = self.init_dict()
         else:
@@ -32,7 +33,7 @@ class Vocabulary():
             d.update({self.unknown: len(d)})
     
         for elem in self.counter:
-            if(elem not in d):
+            if(elem not in d and self.counter[elem] >= self.min_freq):
                 d.update({elem: len(d)})
         
         

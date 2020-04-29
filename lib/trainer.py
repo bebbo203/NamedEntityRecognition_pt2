@@ -18,6 +18,7 @@ class Trainer():
            
         
         start_time = time.time()
+        best_f1 = 0.0
 
         for epoch in range(epochs):
             progress_bar = tqdm(total=len(train_dataset), desc="Epoch: "+str(epoch))
@@ -44,7 +45,7 @@ class Trainer():
             
             progress_bar.close()
             
-            torch.save(self.model.state_dict(), "model/weights.pt")
+            
             epoch_loss /= len(train_dataset)
             valid_loss, micro, macro, recall, f1 = self.evaluate(valid_dataset)
 
@@ -59,6 +60,11 @@ class Trainer():
             fx = open("model/plot.csv", "a+")
             fx.write("%f, %f, %f, %f, %f, %f\n" % (epoch_loss, valid_loss, micro, macro, recall, f1))
             fx.close()
+
+            if(f1 > best_f1):
+                best_f1 = f1
+                torch.save(self.model.state_dict(), "model/weights.pt")
+
     
     def evaluate(self, valid_dataset):
         valid_loss = 0.0

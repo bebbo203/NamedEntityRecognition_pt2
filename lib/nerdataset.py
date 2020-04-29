@@ -20,7 +20,7 @@ class NERDataset(torch.utils.data.Dataset):
         self.windows_list = self.windows_generator(sentences)
         self.words_counter, self.labels_counter = self.init_counter(sentences)
         if(vocabulary is None):
-            self.vocabulary = Vocabulary(self.words_counter, "<unk>", "<pad>")
+            self.vocabulary = Vocabulary(self.words_counter, "<unk>", "<pad>", min_freq=self.params.min_freq)
             self.label_vocabulary = Vocabulary(self.labels_counter, padding="<pad>")
         else:
             self.vocabulary = vocabulary
