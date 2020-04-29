@@ -1,6 +1,6 @@
 class Params():
     device = "cuda"
-    test = True
+    test = False
     windows_size = 50
     windows_shift = 50
     word_embedding_size = 200
