@@ -11,7 +11,7 @@ class Params():
     num_layers = 2
     dropout = 0.5
     max_word_length= 15
-    embeddings_path = None
+    #embeddings_path = None
     embeddings_path = "model/glove.6B.100d.txt"
     processed_embeddings_path = "model/processed_embeddings_path.json"
     alphabet_size = 67

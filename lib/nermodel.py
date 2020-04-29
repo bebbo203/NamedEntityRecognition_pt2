@@ -17,6 +17,12 @@ class NERModel(nn.Module):
         self.conv1 = nn.Conv1d(in_channels=params.max_word_length, out_channels=1, kernel_size=5)
         self.max_pool = nn.MaxPool1d(kernel_size = 2)
         
+        self.char_lstm = nn.LSTM(params.char_embedding_size, params.char_word_embedding_size,
+                                bidirectional=params.bidirectional,
+                                num_layers=params.num_layers, 
+                                dropout = params.dropout if params.num_layers > 1 else 0,
+                                batch_first=True)
+
 
         self.lstm = nn.LSTM(params.word_embedding_size + params.char_word_embedding_size, params.hidden_dim, 
                             bidirectional=params.bidirectional,
@@ -41,20 +47,16 @@ class NERModel(nn.Module):
 
 
         char_embedding = torch.Tensor().to(self.device)
-        for i in range(self.params.windows_size):
-            # Need to change dimensions since the lstm level needs the input as (n_timesteps, batch, n_features)
+        for i in range(u.size()[0]):
             #w = (batch_size, max_word_length, single_char_embedding_dim)
-            w = u[:, i, : , :]
+            w = u[i, :, : , :]
 
-           
-            #out = (batch_size, out_channels, 3?)
-            out = self.max_pool(self.conv1(w))    
+            o, (h, c) = self.char_lstm(w)
 
-            #out  = (batch_size, char_embedding_dim, 23/pool_kernel)
-            
-           
-            char_embedding = torch.cat((char_embedding, out), dim=1)
+            out = h[-1].unsqueeze(dim=0)    
+            char_embedding = torch.cat((char_embedding, out), dim=0)
       
+        
        
         embeddings = self.word_embedder(word)
         embeddings = self.dropout(embeddings)
