@@ -39,19 +39,13 @@ class NERModel(nn.Module):
         word = x[:, :, -1].type(torch.LongTensor).to(self.device)
         chars = x[:, :, :-1].type(torch.LongTensor).to(self.device)
         
-        
-        
-
-
-
-        
         #u = (batch_size, window_size, word_size - 1, single_char_embedding_dim)
         u = self.char_embedder(chars)
-        
         u = u.reshape(u.size()[0], u.size()[1], u.size()[2]*u.size()[3])
         
         o, (h, c) = self.char_lstm(u)
-       
+        o = self.dropout(o)
+
         embeddings = self.word_embedder(word)
         embeddings = self.dropout(embeddings)
 
