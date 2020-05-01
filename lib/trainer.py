@@ -6,6 +6,12 @@ from sklearn.metrics import f1_score, recall_score
 
 from .nermodel import NERModel
 
+'''
+A trainer class that helps with the training and evluation of the model.
+After each epoch an eval method is called that returns the score of the last epoch
+'''
+
+
 class Trainer():
 
     def __init__(self, model, loss_function, optimizer):
@@ -14,8 +20,6 @@ class Trainer():
         self.optimizer = optimizer
     
     def train(self, train_dataset, valid_dataset, epochs = 1):
-        
-           
         
         start_time = time.time()
         best_f1 = 0.0
@@ -60,6 +64,12 @@ class Trainer():
             fx = open("model/plot.csv", "a+")
             fx.write("%f, %f, %f, %f, %f, %f\n" % (epoch_loss, valid_loss, micro, macro, recall, f1))
             fx.close()
+
+            '''
+            Save only the best epoch weights. The macro-f1 score is the one chosen as deciding parameter.
+            I could've implemented some patience function based on the loss but I found out that the model 
+            f1-score increase even after the model starts to overfit
+            '''
 
             if(f1 > best_f1):
                 best_f1 = f1

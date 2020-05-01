@@ -1,4 +1,13 @@
 class Vocabulary():
+
+    '''
+    A simple utility class than wraps a dictionary and return "unknow" index if the given key does'n exist.
+    If "loaded_vocabulary" is a dictionary, the "init_dict" is not called and so the passed dictionary will be used.
+
+    A counter is used to cut the words that are appears in the dataset a number of time less than the min_freq 
+    '''
+
+
     def __init__(self, counter=None, unknown = None, padding = None, loaded_vocabulary = None, min_freq = 0):
         self.counter = counter
         self.unknown = unknown

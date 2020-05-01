@@ -1,16 +1,23 @@
 import numpy as np
 from typing import List, Tuple
 from collections import Counter
+import matplotlib.pyplot as plt
 
 from lib import *
 from lib import NERDataset
 from lib import NERModel
 from sklearn.metrics import precision_score, recall_score, f1_score
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, plot_confusion_matrix, ConfusionMatrixDisplay
 import torch
 from tqdm import tqdm
 
 import json
+
+'''
+Utility class not needed but used for testing purposes. It only wraps the StudentModel and the evaluation procedure in eval.py so that
+tests can be done with the GPU and without waiting for colab to bring everything up.
+At the end of this file the conf_matrix is evaluated and plotted
+'''
 
 
 class StudentModel():
@@ -85,7 +92,7 @@ a = StudentModel("cuda")
 
 
 
-f = open("data/dev.tsv")
+f = open("data/test.tsv")
 pad_idx = a.label_vocabulary["<pad>"]
 
 batch=[]
@@ -156,10 +163,23 @@ flat_labels_s = flat_list(labels_s)
 p = precision_score(flat_labels_s, flat_predictions_s, average='macro')
 r = recall_score(flat_labels_s, flat_predictions_s, average='macro')
 f = f1_score(flat_labels_s, flat_predictions_s, average='macro')
-conf = confusion_matrix(flat_labels_s, flat_predictions_s)
-
+conf = confusion_matrix(flat_labels_s, flat_predictions_s, normalize="true")
+ 
 print(f'# precision: {p:.4f}')
 print(f'# recall: {r:.4f}')
 print(f'# f1: {f:.4f}')
+
+labels = []
+for i in a.label_vocabulary.dict.keys():
+    if(i != "<pad>"):
+        labels.append(i)
+
+disp = ConfusionMatrixDisplay(confusion_matrix=conf,
+                                  display_labels=labels
+                                  )
+
+
+a = disp.plot(include_values=True, cmap="hot")
+plt.show()
 
 print(conf)

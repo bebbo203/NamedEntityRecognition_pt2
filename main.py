@@ -21,7 +21,7 @@ params = Params()
 
 
 
-#Vocabularies and dataset creation
+#Vocabularies and dataset creation and saving
 
 if(not params.test):
     train_dataset = NERDataset("data/train.tsv")
@@ -33,7 +33,6 @@ else:
     test_dataset = NERDataset("data/little_test.tsv", train_dataset.vocabulary, train_dataset.label_vocabulary)
 
 
-
 with open("model/vocabulary.json", 'w+') as outfile:
         json.dump(train_dataset.vocabulary.__dict__, outfile)
 with open("model/label_vocabulary.json", 'w+') as outfile:
@@ -42,6 +41,7 @@ with open("model/label_vocabulary.json", 'w+') as outfile:
 
 
 #Pretrained embeddings weights loading
+
 if(params.embeddings_path != None):
     embeddings_weights = np.zeros([len(train_dataset.vocabulary), params.word_embedding_size])
     if(not (os.path.exists(params.processed_embeddings_path))):
@@ -66,12 +66,14 @@ if(params.embeddings_path != None):
         print("Embedding weights loaded!")
 
 
-
+#Dataloaders preparation, the batch here is a fixed size
 
 
 train_loader = DataLoader(train_dataset, batch_size=256)
 valid_loader = DataLoader(valid_dataset, batch_size=256)
 test_loader = DataLoader(test_dataset, batch_size=256)
+
+#Finally load the model and the embedding weights
 
 nermodel = NERModel(len(train_dataset.vocabulary), params.alphabet_size, len(train_dataset.label_vocabulary) ,  params).to(torch.device(params.device))
 if(params.embeddings_path != None):
@@ -83,4 +85,4 @@ trainer = Trainer(
     optimizer = optim.Adam(params=nermodel.parameters())
 )
 
-trainer.train(train_loader, valid_loader, epochs=1000)
+trainer.train(train_loader, valid_loader, epochs=20)

@@ -7,7 +7,14 @@ from .params import Params
 from .vocabulary import Vocabulary
 
 class NERDataset(torch.utils.data.Dataset):
-    
+
+    '''
+    Dataset class: every sentence is subdivided in windows of window_size size. 
+                   As input for the network a vector of dimensions: (window_size, max_word_lenght+1) is returned.
+                   Everyone of these vector is a concatenation of a predetermined number (max_word_lenght) of encoded chars
+                   and the index of the encoded word. 
+    '''
+
     alphabet = "abcdefghijklmnopqrstuvwxyz0123456789-,;.!?:'/\|_@#$%ˆ&*˜‘+-=()[]{}"
 
     def __init__(self, file_path, vocabulary = None, label_vocabulary = None):
@@ -33,14 +40,13 @@ class NERDataset(torch.utils.data.Dataset):
         return len(self.encoded_data)
     
     def __getitem__(self, idx):
-        if self.encoded_data is None:
-            raise RuntimeError("""Trying to retrieve elements but index_dataset
-            has not been invoked yet! Be sure to invoce index_dataset on this object
-            before trying to retrieve elements. In case you want to retrieve raw
-            elements, use the method get_raw_element(idx)""")
         return self.encoded_data[idx]
 
-
+    '''
+    Returns a list of windows by cutting and padding a single sentence.
+    input: list of words
+    output: list of list of words 
+    '''
     def windows_generator(self, sentences):
         windows_list = []
         for sentence in sentences:
@@ -85,7 +91,13 @@ class NERDataset(torch.utils.data.Dataset):
 
         return ret
     
-    
+    '''
+    Given a sentence and a vocabulary, return the given sentence encoded according to the vocabulary.
+    input:          a sentence composed by ConLLu parsed words
+                    a vocabulary of the class Vocabulary
+    output:         a list of index
+    '''
+
     @staticmethod
     def encode_sentence_conllu(sentence, vocabulary):
         ret = []
@@ -97,6 +109,9 @@ class NERDataset(torch.utils.data.Dataset):
                 ret.append(vocabulary["<pad>"])
         return ret
     
+    '''
+    Same method as the one above but with words that are not in conllu format
+    '''
     @staticmethod
     def encode_sentence(sentence, vocabulary):
         ret = []
@@ -108,6 +123,13 @@ class NERDataset(torch.utils.data.Dataset):
                 ret.append(vocabulary["<pad>"])
         return ret
     
+    '''
+    Given a sentence and an alphabet, return the given sentence encoded according to the alphabet.
+    input:          a sentence composed by ConLLu parsed words
+                    a string representing an alphabet
+    output:         a list of lists of index
+    '''
+
     @staticmethod
     def encode_chars(sentence, alphabet, word_length):
         window_idx = []
@@ -157,6 +179,10 @@ class NERDataset(torch.utils.data.Dataset):
         
         #Is a Tensor that contains a list of lists of words padded
         return window_idx
+
+    '''
+    Given a sentence encoded by one of the methods above, return the original sentence.
+    '''
 
     @staticmethod
     def decode_sentence(sentence, vocabulary):
